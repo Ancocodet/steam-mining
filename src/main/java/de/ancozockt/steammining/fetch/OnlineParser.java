@@ -6,8 +6,6 @@ import lombok.Getter;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 
 @Getter

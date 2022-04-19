@@ -6,7 +6,9 @@ import de.ancozockt.steammining.dataclasses.GameDetails;
 import de.ancozockt.steammining.dataclasses.GamePlayers;
 import de.ancozockt.steammining.fetch.AppParser;
 import de.ancozockt.steammining.fetch.OnlineParser;
+import de.ancozockt.steammining.utility.Config;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ public class Main {
     }
 
     private static void onlineFetch(){
+        Config config = new Config(new File("config.json"));
         AppParser appParser = new AppParser();
 
         HashMap<Integer, Game> games = new HashMap<>();
