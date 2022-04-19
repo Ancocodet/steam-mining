@@ -15,7 +15,10 @@ public class Main {
     public static void main(String[] args) {
         if(args.length > 0 && args[0].equalsIgnoreCase("--details")){
             detailsFetch();
-        }else{
+        } else if(args.length > 0 && args[0].equalsIgnoreCase("--full")){
+            new Thread(Main::onlineFetch).start();
+            new Thread(Main::detailsFetch).start();
+        } else{
             onlineFetch();
         }
     }
