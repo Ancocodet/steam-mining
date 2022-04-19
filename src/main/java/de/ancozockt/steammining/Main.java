@@ -31,16 +31,10 @@ public class Main {
 
         AppParser appParser = new AppParser();
 
-        System.out.println(appParser.getApps().size());
-
-        OnlineFetchManager fetchManager = new OnlineFetchManager(appParser.getApps(),
+        OnlineFetchManager fetchManager = new OnlineFetchManager(appParser.getApps(), mySQLHandler,
                 config.getThreads(), config.getTimeouts());
 
-        fetchManager.getGames().forEach((integer, game) -> {
-            if(mySQLHandler.hasGame(game.getAppId()))
-                mySQLHandler.insertGame(game.getAppId(), game.getName());
-        });
-        System.out.println(fetchManager.getGamePlayers().size());
+        System.out.println("Created " + fetchManager.getGamePlayers().size() + " entries");
     }
 
     private static MySQLHandler connectToDatabase(){

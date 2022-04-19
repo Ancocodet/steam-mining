@@ -18,10 +18,10 @@ public class MySQLHandler {
 
     private void createTables(){
         mySQL.update("CREATE TABLE IF NOT EXISTS genres (id INT PRIMARY KEY, genreid INT, name TEXT);");
-        mySQL.update("CREATE TABLE IF NOT EXISTS games (appid PRIMARY KEY INT, name TEXT);");
+        mySQL.update("CREATE TABLE IF NOT EXISTS games (appid INT PRIMARY KEY, name TEXT);");
 
         mySQL.update("CREATE TABLE IF NOT EXISTS games_info (uuid VARCHAR(100) PRIMARY KEY, game_id INT, release_date DATE, required_age INT, FOREIGN KEY (game_id) REFERENCES games(appid));");
-        mySQL.update("CREATE TABLE IF NOT EXISTS games_genres (uuid VARCHAR(100) PRIMARY KEY, game_id INT, genre_id INT, FOREIGN KEY (game_id) REFERENCES games(id), FOREIGN KEY (genre_id) REFERENCES genres(id));");
+        mySQL.update("CREATE TABLE IF NOT EXISTS games_genres (uuid VARCHAR(100) PRIMARY KEY, game_id INT, genre_id INT, FOREIGN KEY (game_id) REFERENCES games(appid), FOREIGN KEY (genre_id) REFERENCES genres(id));");
         mySQL.update("CREATE TABLE IF NOT EXISTS games_data (uuid VARCHAR(100) PRIMARY KEY, game_id INT, created DATETIME, initial_price INT, final_price INT, discount_percent INT, recommendations LONG, FOREIGN KEY (game_id) REFERENCES games(appid));");
         mySQL.update("CREATE TABLE IF NOT EXISTS games_online (uuid VARCHAR(100) PRIMARY KEY, game_id INT, created DATETIME, online_players LONG, FOREIGN KEY (game_id) REFERENCES games(appid));");
     }
@@ -73,7 +73,7 @@ public class MySQLHandler {
         if(!hasGame(appId)){
             try {
                 PreparedStatement preparedStatement = mySQL.getConnection()
-                        .prepareStatement("INSERT INTO games (appid, name, date) VALUES (?,?);");
+                        .prepareStatement("INSERT INTO games (appid, name) VALUES (?,?);");
 
                 preparedStatement.setInt(1, appId);
                 preparedStatement.setString(2, name);
@@ -126,13 +126,13 @@ public class MySQLHandler {
         }
     }
 
-    public void insertPlayerCount(int appId, int onlinePlayers){
+    public void insertPlayerCount(int appId, long onlinePlayers){
         if(hasGame(appId)){
             UUID uuid = UUID.randomUUID();
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             try {
                 PreparedStatement preparedStatement = mySQL.getConnection()
-                        .prepareStatement("INSERT INTO games_data (uuid, game_id, created, online_players) VALUES (?,?,?,?);");
+                        .prepareStatement("INSERT INTO games_online (uuid, game_id, created, online_players) VALUES (?,?,?,?);");
 
                 preparedStatement.setString(1, uuid.toString());
                 preparedStatement.setInt(2, appId);
