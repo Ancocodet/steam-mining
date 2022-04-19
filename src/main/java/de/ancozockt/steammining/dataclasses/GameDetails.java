@@ -11,7 +11,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class GameDetails {
 
-    private int price;
+    private int appId;
+
+    private int discountPercent;
+    private int initialPrice;
+    private int finalPrice;
+
     private long recommendations;
 
 }

@@ -100,7 +100,7 @@ public class MySQLHandler {
         }
     }
 
-    public void insertData(int appId, int initialPrice, int finalPrice, int discountPercent, int recommendations){
+    public void insertData(int appId, int initialPrice, int finalPrice, int discountPercent, long recommendations){
         if(hasGame(appId)){
             UUID uuid = UUID.randomUUID();
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

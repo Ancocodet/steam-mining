@@ -19,7 +19,7 @@ public class DetailParser {
     private int finalPrice = -1;
     private int discount = 0;
 
-    private int recommendations;
+    private long recommendations;
 
     private boolean success = false;
 
@@ -44,7 +44,7 @@ public class DetailParser {
                     success = true;
 
                     free = data.get("is_free").getAsBoolean();
-                    recommendations = data.get("recommendations").getAsJsonObject().get("total").getAsInt();
+                    recommendations = data.get("recommendations").getAsJsonObject().get("total").getAsLong();
                     if(!free){
                         JsonObject priceOverview = data.get("price_overview").getAsJsonObject();
 
