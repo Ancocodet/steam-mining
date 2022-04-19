@@ -18,7 +18,7 @@ public class AppParser {
 
     private ArrayList<App> apps;
     private final String URL_STRING = "https://api.steampowered.com/ISteamApps/GetAppList/v0002/";
-    private final List<String> TARGET_WORDS = List.of("Playtest", "Test Server", "Dedicated Server", "Server", "Soundtrack", "Tutorial", "DLC", "Demo", "Pack", "Map", "Artbook");
+    private final List<String> TARGET_WORDS = List.of("Playtest", "Test Server", "Dedicated Server", "Server", "Soundtrack", "Tutorial", "DLC", "Demo", "Pack", "Map", "Artbook", "test");
 
     public AppParser(){
         apps = new ArrayList<>();
@@ -46,10 +46,15 @@ public class AppParser {
             appList.forEach(element -> {
                 JsonObject appObject = element.getAsJsonObject();
 
-                apps.add(App.builder()
-                        .appId(appObject.get("appid").getAsInt())
-                        .name(appObject.get("name").getAsString())
-                        .build());
+                if(appObject.has("appid")
+                        && appObject.has("name")) {
+                    if(appObject.get("name") != null) {
+                        apps.add(App.builder()
+                                .appId(appObject.get("appid").getAsInt())
+                                .name(appObject.get("name").getAsString())
+                                .build());
+                    }
+                }
             });
         }
     }
@@ -57,6 +62,8 @@ public class AppParser {
 
     private void filter(){
         apps = (ArrayList<App>) apps.stream().filter(app -> {
+            if(app.getName().length() <= 1)
+                return false;
             for(String word : TARGET_WORDS){
                 if(app.getName().contains(word)){
                     return false;

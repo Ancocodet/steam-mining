@@ -1,19 +1,13 @@
 package de.ancozockt.steammining;
 
-import de.ancozockt.steammining.dataclasses.App;
-import de.ancozockt.steammining.dataclasses.Game;
-import de.ancozockt.steammining.dataclasses.GameDetails;
-import de.ancozockt.steammining.dataclasses.GamePlayers;
+import de.ancozockt.steammining.database.MySQL;
+import de.ancozockt.steammining.database.MySQLData;
+import de.ancozockt.steammining.database.MySQLHandler;
 import de.ancozockt.steammining.fetch.AppParser;
-import de.ancozockt.steammining.fetch.OnlineParser;
+import de.ancozockt.steammining.threads.OnlineFetchManager;
 import de.ancozockt.steammining.utility.Config;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 public class Main {
 
@@ -33,26 +27,25 @@ public class Main {
 
     private static void onlineFetch(){
         Config config = new Config(new File("config.json"));
+        MySQLHandler mySQLHandler = connectToDatabase();
+
         AppParser appParser = new AppParser();
 
-        HashMap<Integer, Game> games = new HashMap<>();
-        List<GamePlayers> gamePlayers = new ArrayList<>();
+        System.out.println(appParser.getApps().size());
 
-        ArrayDeque<App> queue = new ArrayDeque<>(appParser.getApps());
+        OnlineFetchManager fetchManager = new OnlineFetchManager(appParser.getApps(),
+                config.getThreads(), config.getTimeouts());
 
-        for(App app : appParser.getApps()){
-            try {
-                OnlineParser onlineParser = new OnlineParser(app.getAppId());
-                if(onlineParser.getCurrentPlayers() != -1){
-                    if(!games.containsKey(app.getAppId())){
-                        games.put(app.getAppId(), Game.fromApp(app));
-                    }
-                    Game game = games.get(app.getAppId());
-                    gamePlayers.add(new GamePlayers(game, onlineParser.getCurrentPlayers()));
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        fetchManager.getGames().forEach((integer, game) -> {
+            if(mySQLHandler.hasGame(game.getAppId()))
+                mySQLHandler.insertGame(game.getAppId(), game.getName());
+        });
+        System.out.println(fetchManager.getGamePlayers().size());
+    }
+
+    private static MySQLHandler connectToDatabase(){
+        MySQLData mySQLData = new MySQLData(new File("mysql.json"));
+        MySQL mySQL = new MySQL(mySQLData);
+        return new MySQLHandler(mySQL);
     }
 }
