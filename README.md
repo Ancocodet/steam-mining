@@ -1,5 +1,8 @@
 # steam-mining
 
+[![Build](https://github.com/Ancocodet/steam-mining/actions/workflows/gradle.yml/badge.svg?branch=main)](https://github.com/Ancocodet/steam-mining/actions/workflows/gradle.yml)
+[![Publish](https://github.com/Ancocodet/steam-mining/actions/workflows/gradle-publish.yml/badge.svg)](https://github.com/Ancocodet/steam-mining/actions/workflows/gradle-publish.yml)
+
 Data Mining of Steam Data Sources with two running options.
 The fetch is done with multiple threads (config).
 
