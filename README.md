@@ -40,6 +40,6 @@ The thread amount and parse amount should be handled with care.
 
 ## Warnings
 
-There is an Rate-Limit of 100.000 requests per day for details (and there are more then 100.000 games) because of that the detail fetch shouldnt be used more then once per day.
+There is a Rate-Limit of **100.000** requests per day for details (and there are more than 100.000 games) because of that the detail fetch shouldn't be used more than once per day.
 
-The amount of data is huge, because of that the online fetch shouldnt be used very often (recommendet every 2 hours).
+The amount of data is huge, because of that the online fetch shouldn't be used very often (recommended every 2 hours).
