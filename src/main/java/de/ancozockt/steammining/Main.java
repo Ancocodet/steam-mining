@@ -30,7 +30,7 @@ public class Main {
         AppParser appParser = new AppParser();
 
         DetailsFetchManager fetchManager = new DetailsFetchManager(appParser.getApps(), mySQLHandler,
-                config.getThreads(), config.getTimeouts());
+                config.getThreads(), config.getTimeouts(), config.getAppsPerParse());
     }
 
     private static void onlineFetch(){

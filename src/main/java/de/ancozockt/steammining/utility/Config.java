@@ -18,6 +18,9 @@ public class Config {
 
     private int threads = 10;
     private int timeouts = 5000;
+    private int appsPerParse = 500;
+
+
 
     private File file;
 
@@ -37,6 +40,7 @@ public class Config {
 
             object.addProperty("threads", 10);
             object.addProperty("timeouts", 5000);
+            object.addProperty("app_per_parse", 500);
 
             Gson gson = new GsonBuilder()
                     .setPrettyPrinting()
@@ -61,6 +65,7 @@ public class Config {
 
             threads = element.getAsJsonObject().get("threads").getAsInt();
             timeouts = element.getAsJsonObject().get("timeouts").getAsInt();
+            appsPerParse = element.getAsJsonObject().get("app_per_parse").getAsInt();
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -4,22 +4,19 @@ import de.ancozockt.steammining.database.MySQLHandler;
 import de.ancozockt.steammining.dataclasses.App;
 import de.ancozockt.steammining.dataclasses.Game;
 import de.ancozockt.steammining.dataclasses.GameDetails;
-import de.ancozockt.steammining.dataclasses.GamePlayers;
 import de.ancozockt.steammining.fetch.DetailParser;
-import de.ancozockt.steammining.fetch.OnlineParser;
 import lombok.Getter;
 
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class DetailsFetchManager {
 
     private final MySQLHandler mySQLHandler;
     private final int maxThreads;
     private final int timeouts;
+    private final int appsPerParse;
 
     private ArrayDeque<App> queue;
     @Getter
@@ -28,13 +25,14 @@ public class DetailsFetchManager {
     private ArrayList<GameDetails> gameDetails;
 
     public DetailsFetchManager(ArrayList<App> apps, MySQLHandler mySQLHandler,
-                              int threads, int timeouts){
+                              int threads, int timeouts, int appsPerParse){
         queue = new ArrayDeque<>(apps);
         gameDetails = new ArrayList<>();
         games = new HashMap<>();
 
         maxThreads = threads;
         this.timeouts = timeouts;
+        this.appsPerParse = appsPerParse;
         this.mySQLHandler = mySQLHandler;
 
         startThreads();
@@ -52,41 +50,40 @@ public class DetailsFetchManager {
                 try {
                     Thread.sleep(100 + new Random().nextInt(901));
                 } catch (InterruptedException ignored) { }
-                App app = queue.poll();
-                if(app != null){
-                    System.out.println("Thread started: " + app.getAppId() + " (remaining: " + queue.size() + ")");
+                ArrayList<App> apps = new ArrayList<>();
+                while (!queue.isEmpty() && apps.size() < appsPerParse){
+                    App app = queue.poll();
+                    if(app != null)
+                        apps.add(queue.poll());
+                }
+                if(apps.size() > 0){
+                    System.out.println("Thread started (remaining: " + queue.size() + ")");
                     try {
-                        DetailParser detailParser = new DetailParser(app.getAppId());
-                        if (detailParser.isSuccess()) {
-                            if(!mySQLHandler.hasGame(app.getAppId())){
-                                mySQLHandler.insertGame(app.getAppId(), app.getName());
+                        DetailParser detailParser = new DetailParser(apps);
+                        detailParser.getDataMap().forEach((app, details) -> {
+                            if(details.isSuccess()){
+                                if(!mySQLHandler.hasGame(app.getAppId())){
+                                    mySQLHandler.insertGame(app.getAppId(), app.getName());
+                                }
+                                if (!games.containsKey(app.getAppId())) {
+                                    games.put(app.getAppId(), Game.fromApp(app));
+                                }
+                                Game game = games.getOrDefault(app.getAppId(), Game.fromApp(app));
+                                mySQLHandler.insertData(app.getAppId(),
+                                        details.getInitialPrice(),
+                                        details.getFinalPrice(),
+                                        details.getDiscountPercent()
+                                );
+                                gameDetails.add(details);
                             }
-                            if (!games.containsKey(app.getAppId())) {
-                                games.put(app.getAppId(), Game.fromApp(app));
-                            }
-                            Game game = games.getOrDefault(app.getAppId(), Game.fromApp(app));
-                            gameDetails.add(GameDetails.builder()
-                                    .appId(game.getAppId())
-                                    .initialPrice(detailParser.getInitialPrice())
-                                    .finalPrice(detailParser.getFinalPrice())
-                                    .discountPercent(detailParser.getDiscount())
-                                    .recommendations(detailParser.getRecommendations())
-                                    .build());
-                            mySQLHandler.insertData(app.getAppId(),
-                                    detailParser.getInitialPrice(),
-                                    detailParser.getFinalPrice(),
-                                    detailParser.getDiscount(),
-                                    detailParser.getRecommendations()
-                                    );
-                        }
+                        });
                     } catch (IOException exception) {
                         exception.printStackTrace();
-                        queue.add(app);
+                        queue.addAll(apps);
                     } finally {
                         try {
                             Thread.sleep(timeouts);
-                        } catch (InterruptedException ignored) {
-                        }
+                        } catch (InterruptedException ignored) { }
                         startNewThread();
                     }
                 }else{
