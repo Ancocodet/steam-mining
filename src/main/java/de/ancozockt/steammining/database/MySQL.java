@@ -8,7 +8,7 @@ public class MySQL {
 
     public MySQL(MySQLData data){
         try {
-            connection = DriverManager.getConnection("jdbc:mysql://" + data.getHostName() + ":" + data.getPort() + "/" + data.getDatabase() + "?characterEncoding=utf8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Europe/Berlin", data.getUsername(), data.getPassword());
+            connection = DriverManager.getConnection("jdbc:mysql://" + data.getHostName() + ":" + data.getPort() + "/" + data.getDatabase() + "?autoReconnect=true&characterEncoding=utf8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=Europe/Berlin", data.getUsername(), data.getPassword());
         } catch (SQLException exception) {
             exception.printStackTrace();
         }
