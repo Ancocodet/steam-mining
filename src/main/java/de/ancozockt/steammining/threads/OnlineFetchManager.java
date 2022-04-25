@@ -50,34 +50,32 @@ public class OnlineFetchManager {
                 try {
                     Thread.sleep(100 + new Random().nextInt(901));
                 } catch (InterruptedException ignored) { }
-                App app = queue.poll();
-                if(app != null){
-                    System.out.println("Thread started: " + app.getAppId() + " (remaining: " + queue.size() + ")");
-                    try {
-                        OnlineParser onlineParser = new OnlineParser(app.getAppId());
-                        if (onlineParser.getCurrentPlayers() != -1) {
-                            if(!mySQLHandler.hasGame(app.getAppId())){
-                                mySQLHandler.insertGame(app.getAppId(), app.getName());
-                            }
-                            if (!games.containsKey(app.getAppId())) {
-                                games.put(app.getAppId(), Game.fromApp(app));
-                            }
-                            Game game = games.getOrDefault(app.getAppId(), Game.fromApp(app));
-                            gamePlayers.add(new GamePlayers(game, onlineParser.getCurrentPlayers()));
-                            mySQLHandler.insertPlayerCount(app.getAppId(), onlineParser.getCurrentPlayers());
-                        }
-                    } catch (IOException exception) {
-                        exception.printStackTrace();
-                        queue.add(app);
-                    } finally {
+                while (!queue.isEmpty()){
+                    App app = queue.poll();
+                    if(app != null){
+                        System.out.println("Thread started: " + app.getAppId() + " (remaining: " + queue.size() + ")");
                         try {
-                            Thread.sleep(timeouts);
-                        } catch (InterruptedException ignored) {
+                            OnlineParser onlineParser = new OnlineParser(app.getAppId());
+                            if (onlineParser.getCurrentPlayers() != -1) {
+                                if(!mySQLHandler.hasGame(app.getAppId())){
+                                    mySQLHandler.insertGame(app.getAppId(), app.getName());
+                                }
+                                if (!games.containsKey(app.getAppId())) {
+                                    games.put(app.getAppId(), Game.fromApp(app));
+                                }
+                                Game game = games.getOrDefault(app.getAppId(), Game.fromApp(app));
+                                gamePlayers.add(new GamePlayers(game, onlineParser.getCurrentPlayers()));
+                                mySQLHandler.insertPlayerCount(app.getAppId(), onlineParser.getCurrentPlayers());
+                            }
+                        } catch (IOException exception) {
+                            exception.printStackTrace();
+                            queue.add(app);
+                        } finally {
+                            try {
+                                Thread.sleep(timeouts);
+                            } catch (InterruptedException ignored) { }
                         }
-                        startNewThread();
                     }
-                }else{
-                    startNewThread();
                 }
             });
             thread.start();

@@ -50,44 +50,43 @@ public class DetailsFetchManager {
                 try {
                     Thread.sleep(100 + new Random().nextInt(901));
                 } catch (InterruptedException ignored) { }
-                ArrayList<App> apps = new ArrayList<>();
-                while (!queue.isEmpty() && apps.size() < appsPerParse){
-                    App app = queue.poll();
-                    if(app != null)
-                        apps.add(queue.poll());
-                }
-                if(apps.size() > 0){
-                    System.out.println("Thread started (remaining: " + queue.size() + ")");
-                    try {
-                        DetailParser detailParser = new DetailParser(apps);
-                        detailParser.getDataMap().forEach((app, details) -> {
-                            if(details.isSuccess()){
-                                if(!mySQLHandler.hasGame(app.getAppId())){
-                                    mySQLHandler.insertGame(app.getAppId(), app.getName());
-                                }
-                                if (!games.containsKey(app.getAppId())) {
-                                    games.put(app.getAppId(), Game.fromApp(app));
-                                }
-                                Game game = games.getOrDefault(app.getAppId(), Game.fromApp(app));
-                                mySQLHandler.insertData(app.getAppId(),
-                                        details.getInitialPrice(),
-                                        details.getFinalPrice(),
-                                        details.getDiscountPercent()
-                                );
-                                gameDetails.add(details);
-                            }
-                        });
-                    } catch (IOException exception) {
-                        exception.printStackTrace();
-                        queue.addAll(apps);
-                    } finally {
-                        try {
-                            Thread.sleep(timeouts);
-                        } catch (InterruptedException ignored) { }
-                        startNewThread();
+                while(!queue.isEmpty()) {
+                    ArrayList<App> apps = new ArrayList<>();
+                    while (!queue.isEmpty() && apps.size() < appsPerParse){
+                        App app = queue.poll();
+                        if(app != null)
+                            apps.add(queue.poll());
                     }
-                }else{
-                    startNewThread();
+                    if(apps.size() > 0){
+                        System.out.println("Thread started (remaining: " + queue.size() + ")");
+                        try {
+                            DetailParser detailParser = new DetailParser(apps);
+                            detailParser.getDataMap().forEach((app, details) -> {
+                                if(details.isSuccess()){
+                                    if(!mySQLHandler.hasGame(app.getAppId())){
+                                        mySQLHandler.insertGame(app.getAppId(), app.getName());
+                                    }
+                                    if (!games.containsKey(app.getAppId())) {
+                                        games.put(app.getAppId(), Game.fromApp(app));
+                                    }
+                                    Game game = games.getOrDefault(app.getAppId(), Game.fromApp(app));
+                                    mySQLHandler.insertData(app.getAppId(),
+                                            details.getInitialPrice(),
+                                            details.getFinalPrice(),
+                                            details.getDiscountPercent()
+                                    );
+                                    gameDetails.add(details);
+                                }
+                            });
+                        } catch (IOException exception) {
+                            exception.printStackTrace();
+                            queue.addAll(apps);
+                        } finally {
+                            try {
+                                Thread.sleep(timeouts);
+                            } catch (InterruptedException ignored) { }
+                        }
+                    }
                 }
             });
             thread.start();
